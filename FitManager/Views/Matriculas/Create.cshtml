@@ -1,0 +1,145 @@
+@model MatriculaCreateViewModel
+@{
+    ViewData["Title"] = "Nova matrícula";
+    var alunos = (List<Aluno>)ViewBag.Alunos;
+    var planos = (List<Plano>)ViewBag.Planos;
+    var invariante = System.Globalization.CultureInfo.InvariantCulture;
+}
+
+<h1 class="h3 mb-3">Nova matrícula</h1>
+
+@if (planos.Count == 0)
+{
+    <div class="alert alert-warning">
+        <i class="bi bi-exclamation-triangle"></i>
+        Não há planos ativos. <a asp-controller="Planos" asp-action="Create">Cadastre um plano</a> antes de realizar matrículas.
+    </div>
+}
+
+<div class="row g-3">
+    <div class="col-lg-7">
+        <div class="card h-100">
+            <div class="card-body">
+                <form asp-action="Create" method="post" id="formMatricula">
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2"></div>
+
+                    <div class="mb-3">
+                        <label asp-for="AlunoId" class="form-label"></label>
+                        <select asp-for="AlunoId" class="form-select">
+                            <option value="">Selecione o aluno...</option>
+                            @foreach (var aluno in alunos)
+                            {
+                                <option value="@aluno.Id">@aluno.Nome – CPF @aluno.CpfFormatado</option>
+                            }
+                        </select>
+                        <span asp-validation-for="AlunoId"></span>
+                        <div class="form-text">
+                            O aluno ainda não tem cadastro?
+                            <a asp-controller="Alunos" asp-action="Create">Cadastrar novo aluno</a>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="PlanoId" class="form-label"></label>
+                        <select asp-for="PlanoId" class="form-select">
+                            <option value="">Selecione o plano...</option>
+                            @foreach (var plano in planos)
+                            {
+                                <option value="@plano.Id"
+                                        data-duracao="@plano.DuracaoMeses"
+                                        data-valor="@plano.ValorMensal.ToString(invariante)">@plano.Nome – @plano.DuracaoMeses @(plano.DuracaoMeses == 1 ? "mês" : "meses") – @plano.ValorMensal.ToString("C")/mês @(plano.AceitaGymPass ? "– aceita GymPass" : "")</option>
+                            }
+                        </select>
+                        <span asp-validation-for="PlanoId"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="DataInicio" class="form-label"></label>
+                        <input asp-for="DataInicio" class="form-control" style="max-width: 220px" />
+                        <span asp-validation-for="DataInicio"></span>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> Confirmar matrícula</button>
+                        <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-5">
+        <div class="card h-100">
+            <div class="card-header bg-white fw-semibold">Resumo da matrícula</div>
+            <div class="card-body">
+                <p class="text-muted" id="resumoVazio">Selecione o plano e a data de início para ver o resumo.</p>
+                <dl class="row mb-0 dl-dados d-none" id="resumo">
+                    <dt class="col-6">Início</dt>
+                    <dd class="col-6" id="resumoInicio"></dd>
+                    <dt class="col-6">Término</dt>
+                    <dd class="col-6" id="resumoFim"></dd>
+                    <dt class="col-6">Mensalidades</dt>
+                    <dd class="col-6" id="resumoQuantidade"></dd>
+                    <dt class="col-6">Valor mensal</dt>
+                    <dd class="col-6" id="resumoValor"></dd>
+                    <dt class="col-6">Total do período</dt>
+                    <dd class="col-6 mb-0 fw-semibold" id="resumoTotal"></dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        (function () {
+            var plano = document.getElementById('PlanoId');
+            var inicio = document.getElementById('DataInicio');
+            var resumo = document.getElementById('resumo');
+            var vazio = document.getElementById('resumoVazio');
+            var moeda = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
+
+            function formatarData(data) {
+                return data.toLocaleDateString('pt-BR');
+            }
+
+            // Mesmo comportamento do DateTime.AddMonths do C#: limita ao último dia do mês.
+            function somarMeses(data, meses) {
+                var resultado = new Date(data.getFullYear(), data.getMonth() + meses, 1);
+                var ultimoDia = new Date(resultado.getFullYear(), resultado.getMonth() + 1, 0).getDate();
+                resultado.setDate(Math.min(data.getDate(), ultimoDia));
+                return resultado;
+            }
+
+            function atualizar() {
+                var opcao = plano.options[plano.selectedIndex];
+                var partes = (inicio.value || '').split('-');
+
+                if (!opcao || !opcao.value || partes.length !== 3) {
+                    resumo.classList.add('d-none');
+                    vazio.classList.remove('d-none');
+                    return;
+                }
+
+                var duracao = parseInt(opcao.getAttribute('data-duracao'), 10);
+                var valor = parseFloat(opcao.getAttribute('data-valor'));
+                var dataInicio = new Date(parseInt(partes[0], 10), parseInt(partes[1], 10) - 1, parseInt(partes[2], 10));
+                var dataFim = somarMeses(dataInicio, duracao);
+
+                document.getElementById('resumoInicio').textContent = formatarData(dataInicio);
+                document.getElementById('resumoFim').textContent = formatarData(dataFim);
+                document.getElementById('resumoQuantidade').textContent = duracao;
+                document.getElementById('resumoValor').textContent = moeda.format(valor);
+                document.getElementById('resumoTotal').textContent = moeda.format(valor * duracao);
+
+                vazio.classList.add('d-none');
+                resumo.classList.remove('d-none');
+            }
+
+            plano.addEventListener('change', atualizar);
+            inicio.addEventListener('change', atualizar);
+            atualizar();
+        })();
+    </script>
+}

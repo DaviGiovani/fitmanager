@@ -1,0 +1,49 @@
+@model Plano
+@{
+    ViewData["Title"] = "Excluir plano";
+    var quantidadeMatriculas = (int)ViewBag.QuantidadeMatriculas;
+}
+
+<h1 class="h3 mb-3">Excluir plano</h1>
+
+<div class="card">
+    <div class="card-body">
+        @if (quantidadeMatriculas > 0)
+        {
+            <div class="alert alert-warning">
+                <i class="bi bi-exclamation-triangle"></i>
+                O plano <strong>@Model.Nome</strong> já foi utilizado em @quantidadeMatriculas matrícula(s).
+                Para preservar o histórico, ele não será apagado: será apenas <strong>inativado</strong>
+                e deixará de aparecer para novas matrículas.
+            </div>
+        }
+        else
+        {
+            <div class="alert alert-danger">
+                <i class="bi bi-exclamation-triangle"></i>
+                Tem certeza de que deseja excluir o plano <strong>@Model.Nome</strong>? Esta ação não pode ser desfeita.
+            </div>
+        }
+
+        <dl class="row dl-dados">
+            <dt class="col-sm-3">Plano</dt>
+            <dd class="col-sm-9">@Model.Nome</dd>
+            <dt class="col-sm-3">Duração</dt>
+            <dd class="col-sm-9">@Model.DuracaoMeses @(Model.DuracaoMeses == 1 ? "mês" : "meses")</dd>
+            <dt class="col-sm-3">Valor mensal</dt>
+            <dd class="col-sm-9">@Model.ValorMensal.ToString("C")</dd>
+        </dl>
+
+        <form asp-action="Delete" asp-route-id="@Model.Id" method="post" class="d-flex gap-2">
+            @if (quantidadeMatriculas > 0)
+            {
+                <button type="submit" class="btn btn-warning"><i class="bi bi-slash-circle"></i> Inativar plano</button>
+            }
+            else
+            {
+                <button type="submit" class="btn btn-danger"><i class="bi bi-trash"></i> Sim, excluir</button>
+            }
+            <a asp-action="Index" class="btn btn-outline-secondary">Voltar</a>
+        </form>
+    </div>
+</div>

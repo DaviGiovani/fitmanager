@@ -1,0 +1,159 @@
+/* FitManager – ajustes sobre o Bootstrap 5 */
+:root {
+    --fm-primaria: #0f766e;
+    --fm-primaria-escura: #115e59;
+    --fm-fundo: #f4f6f8;
+}
+
+body {
+    background-color: var(--fm-fundo);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+main {
+    flex: 1;
+}
+
+.navbar-fm {
+    background-color: #12202b;
+}
+
+.navbar-fm .navbar-brand {
+    font-weight: 700;
+    letter-spacing: .3px;
+}
+
+.navbar-fm .navbar-brand i {
+    color: #2dd4bf;
+}
+
+.navbar-fm .nav-link.active {
+    color: #fff;
+    border-bottom: 2px solid #2dd4bf;
+}
+
+.btn-primary {
+    --bs-btn-bg: var(--fm-primaria);
+    --bs-btn-border-color: var(--fm-primaria);
+    --bs-btn-hover-bg: var(--fm-primaria-escura);
+    --bs-btn-hover-border-color: var(--fm-primaria-escura);
+    --bs-btn-active-bg: var(--fm-primaria-escura);
+    --bs-btn-active-border-color: var(--fm-primaria-escura);
+    --bs-btn-disabled-bg: var(--fm-primaria);
+    --bs-btn-disabled-border-color: var(--fm-primaria);
+}
+
+.btn-outline-primary {
+    --bs-btn-color: var(--fm-primaria);
+    --bs-btn-border-color: var(--fm-primaria);
+    --bs-btn-hover-bg: var(--fm-primaria);
+    --bs-btn-hover-border-color: var(--fm-primaria);
+    --bs-btn-active-bg: var(--fm-primaria);
+    --bs-btn-active-border-color: var(--fm-primaria);
+}
+
+a {
+    color: var(--fm-primaria);
+}
+
+.page-link {
+    color: var(--fm-primaria);
+}
+
+.page-item.active .page-link {
+    background-color: var(--fm-primaria);
+    border-color: var(--fm-primaria);
+}
+
+.card {
+    border: 0;
+    box-shadow: 0 1px 3px rgba(16, 24, 40, .08);
+}
+
+.card-indicador .valor {
+    font-size: 1.9rem;
+    font-weight: 700;
+    line-height: 1.1;
+}
+
+.card-indicador .icone {
+    font-size: 1.6rem;
+    color: var(--fm-primaria);
+    background: #ccfbf1;
+    border-radius: .6rem;
+    width: 3rem;
+    height: 3rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.table > :not(caption) > * > * {
+    vertical-align: middle;
+}
+
+.table thead th {
+    font-size: .8rem;
+    text-transform: uppercase;
+    letter-spacing: .4px;
+    color: #667085;
+}
+
+.field-validation-error,
+.validation-summary-errors {
+    color: #b42318;
+    font-size: .875rem;
+}
+
+.validation-summary-errors ul {
+    margin-bottom: 0;
+    padding-left: 1.2rem;
+}
+
+.validation-summary-valid {
+    display: none;
+}
+
+.input-validation-error {
+    border-color: #d92d20;
+}
+
+.btn-senha {
+    border-color: var(--bs-border-color);
+}
+
+.input-group > .input-validation-error + .btn-senha {
+    border-color: #d92d20;
+}
+
+.login-page {
+    background: linear-gradient(135deg, #12202b 0%, #0f766e 100%);
+    align-items: center;
+    justify-content: center;
+}
+
+.login-card {
+    width: 100%;
+    max-width: 410px;
+}
+
+.dl-dados dt {
+    font-weight: 500;
+    color: #667085;
+}
+
+@media print {
+    .navbar, footer, .nao-imprimir {
+        display: none !important;
+    }
+
+    body {
+        background: #fff;
+    }
+
+    .card {
+        box-shadow: none;
+    }
+}

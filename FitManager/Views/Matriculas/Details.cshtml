@@ -1,0 +1,148 @@
+@model Matricula
+@{
+    ViewData["Title"] = "Matrícula";
+    var hoje = DateTime.Today;
+    var mesAtual = new DateTime(hoje.Year, hoje.Month, 1);
+    var ativa = Model.EstaAtiva();
+    var pendentes = Model.MesesPendentes().ToList();
+    var emAberto = Model.MesesEmAberto(hoje).ToList();
+    var totalPago = Model.Pagamentos.Sum(p => p.Valor);
+    var classeStatus = Model.Status switch
+    {
+        StatusMatricula.Ativa => "text-bg-success",
+        StatusMatricula.Cancelada => "text-bg-danger",
+        _ => "text-bg-secondary"
+    };
+}
+
+@if (TempData["NovaMatricula"] is not null && ativa)
+{
+    <div class="alert alert-info d-flex flex-wrap justify-content-between align-items-center gap-2">
+        <span><i class="bi bi-cash-coin"></i> Deseja registrar o primeiro pagamento agora?</span>
+        <a asp-controller="Pagamentos" asp-action="Create" asp-route-matriculaId="@Model.Id" class="btn btn-sm btn-primary">Registrar primeiro pagamento</a>
+    </div>
+}
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <div>
+        <h1 class="h3 mb-0">Matrícula de @Model.Aluno?.Nome</h1>
+        <span class="badge @classeStatus">@Model.Status</span>
+        @if (Model.DataCancelamento.HasValue)
+        {
+            <span class="small text-muted ms-1">Cancelada em @Model.DataCancelamento.Value.ToString("dd/MM/yyyy")</span>
+        }
+    </div>
+    <div class="d-flex flex-wrap gap-2 nao-imprimir">
+        @if (ativa && pendentes.Count > 0)
+        {
+            <a asp-controller="Pagamentos" asp-action="Create" asp-route-matriculaId="@Model.Id" class="btn btn-primary"><i class="bi bi-cash-coin"></i> Registrar pagamento</a>
+        }
+        @if (ativa)
+        {
+            <form asp-action="Cancelar" asp-route-id="@Model.Id" method="post" class="m-0"
+                  data-confirmar="Tem certeza de que deseja cancelar esta matrícula? Esta ação não pode ser desfeita.">
+                <button type="submit" class="btn btn-outline-danger"><i class="bi bi-x-circle"></i> Cancelar matrícula</button>
+            </form>
+        }
+        <a asp-action="Index" class="btn btn-outline-secondary">Voltar</a>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-4">
+        <div class="card h-100">
+            <div class="card-header bg-white fw-semibold">Dados da matrícula</div>
+            <div class="card-body">
+                <dl class="row mb-0 dl-dados">
+                    <dt class="col-5">Aluno</dt>
+                    <dd class="col-7"><a asp-controller="Alunos" asp-action="Details" asp-route-id="@Model.AlunoId">@Model.Aluno?.Nome</a></dd>
+                    <dt class="col-5">Plano</dt>
+                    <dd class="col-7">@Model.Plano?.Nome</dd>
+                    <dt class="col-5">Início</dt>
+                    <dd class="col-7">@Model.DataInicio.ToString("dd/MM/yyyy")</dd>
+                    <dt class="col-5">Término</dt>
+                    <dd class="col-7">@Model.DataFim.ToString("dd/MM/yyyy")</dd>
+                    <dt class="col-5">Valor mensal</dt>
+                    <dd class="col-7">@Model.ValorMensal.ToString("C")</dd>
+                    <dt class="col-5">Total pago</dt>
+                    <dd class="col-7">@totalPago.ToString("C")</dd>
+                    <dt class="col-5">Em aberto</dt>
+                    <dd class="col-7 mb-0">
+                        @if (ativa && emAberto.Count > 0)
+                        {
+                            <span class="text-danger fw-semibold">@emAberto.Count mensalidade(s)</span>
+                        }
+                        else
+                        {
+                            <span>Nenhuma</span>
+                        }
+                    </dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-8">
+        <div class="card h-100">
+            <div class="card-header bg-white fw-semibold">Mensalidades e histórico de pagamentos</div>
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Mês de referência</th>
+                            <th>Situação</th>
+                            <th>Pago em</th>
+                            <th>Forma</th>
+                            <th class="text-end">Valor</th>
+                            <th class="nao-imprimir"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var mes in Model.MesesDeReferencia())
+                        {
+                            var pagamento = Model.PagamentoDoMes(mes);
+                            <tr>
+                                <td>@mes.ToString("MM/yyyy")</td>
+                                @if (pagamento is not null)
+                                {
+                                    <td><span class="badge text-bg-success">Paga</span></td>
+                                    <td>@pagamento.DataPagamento.ToString("dd/MM/yyyy")</td>
+                                    <td>@pagamento.FormaPagamento.Descricao()</td>
+                                    <td class="text-end">@pagamento.Valor.ToString("C")</td>
+                                    <td class="nao-imprimir"></td>
+                                }
+                                else
+                                {
+                                    <td>
+                                        @if (!ativa)
+                                        {
+                                            <span class="badge text-bg-secondary">Não paga</span>
+                                        }
+                                        else if (mes <= mesAtual)
+                                        {
+                                            <span class="badge text-bg-danger">Em aberto</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge text-bg-light border">A vencer</span>
+                                        }
+                                    </td>
+                                    <td>—</td>
+                                    <td>—</td>
+                                    <td class="text-end text-muted">@Model.ValorMensal.ToString("C")</td>
+                                    <td class="text-end nao-imprimir">
+                                        @if (ativa)
+                                        {
+                                            <a asp-controller="Pagamentos" asp-action="Create" asp-route-matriculaId="@Model.Id"
+                                               asp-route-mes="@mes.ToString("yyyy-MM-dd")" class="btn btn-sm btn-outline-primary">Pagar</a>
+                                        }
+                                    </td>
+                                }
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

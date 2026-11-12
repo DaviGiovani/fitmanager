@@ -1,0 +1,111 @@
+@model PaginatedList<Matricula>
+@{
+    ViewData["Title"] = "Matrículas";
+    var busca = ViewData["Busca"] as string;
+    var status = ViewData["Status"] as StatusMatricula?;
+    var statusTexto = status?.ToString();
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h3 mb-0">Matrículas</h1>
+    <a asp-action="Create" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Nova matrícula</a>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <form asp-action="Index" method="get" class="row g-2 mb-3">
+            <div class="col-sm-6 col-md-5">
+                <input type="search" name="busca" value="@busca" class="form-control" placeholder="Pesquisar por nome do aluno" />
+            </div>
+            <div class="col-sm-4 col-md-3">
+                <select name="status" class="form-select">
+                    <option value="">Todos os status</option>
+                    @foreach (var opcao in Enum.GetValues<StatusMatricula>())
+                    {
+                        <option value="@opcao" selected="@(opcao == status)">@opcao</option>
+                    }
+                </select>
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-outline-primary"><i class="bi bi-search"></i> Filtrar</button>
+                @if (!string.IsNullOrWhiteSpace(busca) || status.HasValue)
+                {
+                    <a asp-action="Index" class="btn btn-link">Limpar</a>
+                }
+            </div>
+        </form>
+
+        @if (Model.Count == 0)
+        {
+            <p class="text-muted mb-0">Nenhuma matrícula encontrada.</p>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Aluno</th>
+                            <th>Plano</th>
+                            <th>Início</th>
+                            <th>Término</th>
+                            <th class="text-end">Valor mensal</th>
+                            <th>Status</th>
+                            <th class="text-end">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var matricula in Model)
+                        {
+                            var classe = matricula.Status switch
+                            {
+                                StatusMatricula.Ativa => "text-bg-success",
+                                StatusMatricula.Cancelada => "text-bg-danger",
+                                _ => "text-bg-secondary"
+                            };
+                            <tr>
+                                <td>@matricula.Aluno?.Nome</td>
+                                <td>@matricula.Plano?.Nome</td>
+                                <td>@matricula.DataInicio.ToString("dd/MM/yyyy")</td>
+                                <td>@matricula.DataFim.ToString("dd/MM/yyyy")</td>
+                                <td class="text-end">@matricula.ValorMensal.ToString("C")</td>
+                                <td><span class="badge @classe">@matricula.Status</span></td>
+                                <td class="text-end text-nowrap">
+                                    <a asp-action="Details" asp-route-id="@matricula.Id" class="btn btn-sm btn-outline-secondary" title="Detalhes"><i class="bi bi-eye"></i></a>
+                                    @if (matricula.EstaAtiva())
+                                    {
+                                        <a asp-controller="Pagamentos" asp-action="Create" asp-route-matriculaId="@matricula.Id"
+                                           class="btn btn-sm btn-outline-primary" title="Registrar pagamento"><i class="bi bi-cash-coin"></i></a>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center">
+                <span class="small text-muted">@Model.TotalItens matrícula(s) · página @Model.PaginaAtual de @Model.TotalPaginas</span>
+                @if (Model.TotalPaginas > 1)
+                {
+                    <nav aria-label="Paginação">
+                        <ul class="pagination pagination-sm mb-0">
+                            <li class="page-item @(Model.TemAnterior ? "" : "disabled")">
+                                <a class="page-link" asp-action="Index" asp-route-busca="@busca" asp-route-status="@statusTexto" asp-route-pagina="@(Model.PaginaAtual - 1)">Anterior</a>
+                            </li>
+                            @for (var i = 1; i <= Model.TotalPaginas; i++)
+                            {
+                                <li class="page-item @(i == Model.PaginaAtual ? "active" : "")">
+                                    <a class="page-link" asp-action="Index" asp-route-busca="@busca" asp-route-status="@statusTexto" asp-route-pagina="@i">@i</a>
+                                </li>
+                            }
+                            <li class="page-item @(Model.TemProxima ? "" : "disabled")">
+                                <a class="page-link" asp-action="Index" asp-route-busca="@busca" asp-route-status="@statusTexto" asp-route-pagina="@(Model.PaginaAtual + 1)">Próxima</a>
+                            </li>
+                        </ul>
+                    </nav>
+                }
+            </div>
+        }
+    </div>
+</div>

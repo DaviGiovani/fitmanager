@@ -1,0 +1,52 @@
+@model Aluno
+@{
+    ViewData["Title"] = "Excluir aluno";
+    var possuiAtiva = Model.PossuiMatriculaAtiva();
+}
+
+<h1 class="h3 mb-3">Excluir aluno</h1>
+
+<div class="card">
+    <div class="card-body">
+        @if (possuiAtiva)
+        {
+            <div class="alert alert-warning">
+                <i class="bi bi-exclamation-triangle"></i>
+                <strong>@Model.Nome</strong> possui matrícula ativa e não pode ser excluído.
+                Cancele a matrícula antes de excluir o aluno.
+            </div>
+        }
+        else
+        {
+            <div class="alert alert-danger">
+                <i class="bi bi-exclamation-triangle"></i>
+                Tem certeza de que deseja excluir <strong>@Model.Nome</strong>? Esta ação não pode ser desfeita.
+                @if (Model.Matriculas.Count > 0 || Model.Treinos.Count > 0)
+                {
+                    <div class="mt-1">
+                        O histórico do aluno também será excluído:
+                        @Model.Matriculas.Count matrícula(s) encerrada(s) ou cancelada(s), com seus pagamentos,
+                        e @Model.Treinos.Count ficha(s) de treino.
+                    </div>
+                }
+            </div>
+        }
+
+        <dl class="row dl-dados">
+            <dt class="col-sm-3">Nome</dt>
+            <dd class="col-sm-9">@Model.Nome</dd>
+            <dt class="col-sm-3">CPF</dt>
+            <dd class="col-sm-9">@Model.CpfFormatado</dd>
+            <dt class="col-sm-3">Nascimento</dt>
+            <dd class="col-sm-9">@Model.DataNascimento.ToString("dd/MM/yyyy")</dd>
+        </dl>
+
+        <form asp-action="Delete" asp-route-id="@Model.Id" method="post" class="d-flex gap-2">
+            @if (!possuiAtiva)
+            {
+                <button type="submit" class="btn btn-danger"><i class="bi bi-trash"></i> Sim, excluir</button>
+            }
+            <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-outline-secondary">Voltar</a>
+        </form>
+    </div>
+</div>

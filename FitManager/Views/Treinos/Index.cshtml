@@ -1,0 +1,81 @@
+@model List<Treino>
+@{
+    ViewData["Title"] = "Fichas de treino";
+    var busca = ViewData["Busca"] as string;
+    var instrutorLogadoId = ViewBag.InstrutorLogadoId as int?;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h3 mb-0">Fichas de treino</h1>
+    <a asp-action="Create" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Nova ficha</a>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <form asp-action="Index" method="get" class="row g-2 mb-3">
+            <div class="col-sm-8 col-md-6">
+                <input type="search" name="busca" value="@busca" class="form-control" placeholder="Pesquisar por aluno ou nome da ficha" />
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-outline-primary"><i class="bi bi-search"></i> Pesquisar</button>
+                @if (!string.IsNullOrWhiteSpace(busca))
+                {
+                    <a asp-action="Index" class="btn btn-link">Limpar</a>
+                }
+            </div>
+        </form>
+
+        @if (Model.Count == 0)
+        {
+            <p class="text-muted mb-0">Nenhuma ficha de treino encontrada.</p>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Aluno</th>
+                            <th>Ficha</th>
+                            <th>Instrutor</th>
+                            <th class="text-center">Exercícios</th>
+                            <th>Criada em</th>
+                            <th>Situação</th>
+                            <th class="text-end">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var treino in Model)
+                        {
+                            <tr>
+                                <td>@treino.Aluno?.Nome</td>
+                                <td><a asp-action="Details" asp-route-id="@treino.Id">@treino.Nome</a></td>
+                                <td>@treino.Instrutor?.Nome</td>
+                                <td class="text-center">@treino.Itens.Count</td>
+                                <td>@treino.DataCriacao.ToString("dd/MM/yyyy")</td>
+                                <td>
+                                    @if (treino.Ativo)
+                                    {
+                                        <span class="badge text-bg-success">Ativa</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge text-bg-secondary">Inativa</span>
+                                    }
+                                </td>
+                                <td class="text-end text-nowrap">
+                                    <a asp-action="Details" asp-route-id="@treino.Id" class="btn btn-sm btn-outline-secondary" title="Ver ficha"><i class="bi bi-eye"></i></a>
+                                    @if (treino.InstrutorId == instrutorLogadoId)
+                                    {
+                                        <a asp-action="Edit" asp-route-id="@treino.Id" class="btn btn-sm btn-outline-primary" title="Editar"><i class="bi bi-pencil"></i></a>
+                                        <a asp-action="Delete" asp-route-id="@treino.Id" class="btn btn-sm btn-outline-danger" title="Excluir"><i class="bi bi-trash"></i></a>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>

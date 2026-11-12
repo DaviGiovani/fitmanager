@@ -1,0 +1,27 @@
+@model Plano
+@{
+    ViewData["Title"] = "Editar plano";
+}
+
+<h1 class="h3 mb-3">Editar plano</h1>
+
+<div class="card">
+    <div class="card-body">
+        <div class="alert alert-info py-2">
+            <i class="bi bi-info-circle"></i>
+            Alterações de valor e duração valem apenas para as próximas matrículas. As matrículas já existentes mantêm o valor contratado.
+        </div>
+        <form asp-action="Edit" asp-route-id="@Model.Id" method="post">
+            <input type="hidden" asp-for="Id" />
+            <partial name="_Form" />
+            <div class="mt-4 d-flex gap-2">
+                <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> Salvar alterações</button>
+                <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

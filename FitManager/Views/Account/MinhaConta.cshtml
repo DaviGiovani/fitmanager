@@ -1,0 +1,60 @@
+@model MinhaContaViewModel
+@{
+    ViewData["Title"] = "Minha conta";
+}
+
+<h1 class="h3 mb-3">Minha conta</h1>
+
+<div class="row">
+    <div class="col-lg-7">
+        <div class="card">
+            <div class="card-body">
+                <form asp-action="MinhaConta" method="post">
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2"></div>
+
+                    <h2 class="h6 text-muted text-uppercase mb-3">Dados de acesso</h2>
+                    <div class="mb-4">
+                        <label asp-for="Email" class="form-label"></label>
+                        <input asp-for="Email" class="form-control" autocomplete="username" maxlength="100" />
+                        <span asp-validation-for="Email"></span>
+                        <div class="form-text">É o e-mail usado para entrar no sistema.</div>
+                    </div>
+
+                    <h2 class="h6 text-muted text-uppercase mb-3">Alterar senha (opcional)</h2>
+                    <div class="row g-3 mb-1">
+                        <div class="col-md-6">
+                            <label asp-for="NovaSenha" class="form-label"></label>
+                            <input asp-for="NovaSenha" class="form-control" autocomplete="new-password" />
+                            <span asp-validation-for="NovaSenha"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="ConfirmarNovaSenha" class="form-label"></label>
+                            <input asp-for="ConfirmarNovaSenha" class="form-control" autocomplete="new-password" />
+                            <span asp-validation-for="ConfirmarNovaSenha"></span>
+                        </div>
+                    </div>
+                    <div class="form-text mb-4">
+                        Deixe em branco para manter a senha atual. A nova senha deve ter no mínimo 6 caracteres,
+                        com letra maiúscula, letra minúscula, número e símbolo.
+                    </div>
+
+                    <h2 class="h6 text-muted text-uppercase mb-3">Confirmação</h2>
+                    <div class="mb-4" style="max-width: 320px">
+                        <label asp-for="SenhaAtual" class="form-label"></label>
+                        <input asp-for="SenhaAtual" class="form-control" autocomplete="current-password" />
+                        <span asp-validation-for="SenhaAtual"></span>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> Salvar alterações</button>
+                        <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

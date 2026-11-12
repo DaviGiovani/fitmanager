@@ -1,0 +1,95 @@
+@model Aluno
+@{
+    ViewData["Title"] = Model.Nome;
+    var possuiAtiva = Model.PossuiMatriculaAtiva();
+}
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <div>
+        <h1 class="h3 mb-0">@Model.Nome</h1>
+        @if (Model.Ativo)
+        {
+            <span class="badge text-bg-success">Ativo</span>
+        }
+        else
+        {
+            <span class="badge text-bg-secondary">Inativo</span>
+        }
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+        @if (Model.Ativo && !possuiAtiva)
+        {
+            <a asp-controller="Matriculas" asp-action="Create" asp-route-alunoId="@Model.Id" class="btn btn-primary"><i class="bi bi-card-checklist"></i> Matricular</a>
+        }
+        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-outline-primary"><i class="bi bi-pencil"></i> Editar</a>
+        <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-outline-danger"><i class="bi bi-trash"></i> Excluir</a>
+        <a asp-action="Index" class="btn btn-outline-secondary">Voltar</a>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-5">
+        <div class="card h-100">
+            <div class="card-header bg-white fw-semibold">Dados pessoais</div>
+            <div class="card-body">
+                <dl class="row mb-0 dl-dados">
+                    <dt class="col-5">CPF</dt>
+                    <dd class="col-7">@Model.CpfFormatado</dd>
+                    <dt class="col-5">Nascimento</dt>
+                    <dd class="col-7">@Model.DataNascimento.ToString("dd/MM/yyyy") (@Model.CalcularIdade() anos)</dd>
+                    <dt class="col-5">Telefone</dt>
+                    <dd class="col-7">@(string.IsNullOrWhiteSpace(Model.Telefone) ? "—" : Model.Telefone)</dd>
+                    <dt class="col-5">E-mail</dt>
+                    <dd class="col-7">@(string.IsNullOrWhiteSpace(Model.Email) ? "—" : Model.Email)</dd>
+                    <dt class="col-5">Cadastrado em</dt>
+                    <dd class="col-7 mb-0">@Model.DataCadastro.ToString("dd/MM/yyyy HH:mm")</dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-7">
+        <div class="card h-100">
+            <div class="card-header bg-white fw-semibold">Matrículas</div>
+            @if (Model.Matriculas.Count == 0)
+            {
+                <div class="card-body text-muted">Este aluno ainda não possui matrículas.</div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Plano</th>
+                                <th>Período</th>
+                                <th class="text-end">Valor mensal</th>
+                                <th>Status</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var matricula in Model.Matriculas.OrderByDescending(m => m.DataInicio))
+                            {
+                                var classe = matricula.Status switch
+                                {
+                                    StatusMatricula.Ativa => "text-bg-success",
+                                    StatusMatricula.Cancelada => "text-bg-danger",
+                                    _ => "text-bg-secondary"
+                                };
+                                <tr>
+                                    <td>@matricula.Plano?.Nome</td>
+                                    <td>@matricula.DataInicio.ToString("dd/MM/yyyy") a @matricula.DataFim.ToString("dd/MM/yyyy")</td>
+                                    <td class="text-end">@matricula.ValorMensal.ToString("C")</td>
+                                    <td><span class="badge @classe">@matricula.Status</span></td>
+                                    <td class="text-end">
+                                        <a asp-controller="Matriculas" asp-action="Details" asp-route-id="@matricula.Id" class="btn btn-sm btn-outline-secondary">Abrir</a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</div>

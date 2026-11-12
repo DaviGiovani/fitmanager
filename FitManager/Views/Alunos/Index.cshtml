@@ -1,0 +1,107 @@
+@model PaginatedList<Aluno>
+@{
+    ViewData["Title"] = "Alunos";
+    var busca = ViewData["Busca"] as string;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h3 mb-0">Alunos</h1>
+    <a asp-action="Create" class="btn btn-primary"><i class="bi bi-person-plus"></i> Novo aluno</a>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <form asp-action="Index" method="get" class="row g-2 mb-3">
+            <div class="col-sm-8 col-md-6">
+                <input type="search" name="busca" value="@busca" class="form-control" placeholder="Pesquisar por nome ou CPF" />
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-outline-primary"><i class="bi bi-search"></i> Pesquisar</button>
+                @if (!string.IsNullOrWhiteSpace(busca))
+                {
+                    <a asp-action="Index" class="btn btn-link">Limpar</a>
+                }
+            </div>
+        </form>
+
+        @if (Model.Count == 0)
+        {
+            <p class="text-muted mb-0">Nenhum aluno encontrado.</p>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Nome</th>
+                            <th>CPF</th>
+                            <th>Telefone</th>
+                            <th>Situação</th>
+                            <th>Matrícula</th>
+                            <th class="text-end">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var aluno in Model)
+                        {
+                            <tr>
+                                <td><a asp-action="Details" asp-route-id="@aluno.Id">@aluno.Nome</a></td>
+                                <td>@aluno.CpfFormatado</td>
+                                <td>@aluno.Telefone</td>
+                                <td>
+                                    @if (aluno.Ativo)
+                                    {
+                                        <span class="badge text-bg-success">Ativo</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge text-bg-secondary">Inativo</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (aluno.PossuiMatriculaAtiva())
+                                    {
+                                        <span class="badge text-bg-primary">Ativa</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted small">Sem matrícula ativa</span>
+                                    }
+                                </td>
+                                <td class="text-end text-nowrap">
+                                    <a asp-action="Details" asp-route-id="@aluno.Id" class="btn btn-sm btn-outline-secondary" title="Detalhes"><i class="bi bi-eye"></i></a>
+                                    <a asp-action="Edit" asp-route-id="@aluno.Id" class="btn btn-sm btn-outline-primary" title="Editar"><i class="bi bi-pencil"></i></a>
+                                    <a asp-action="Delete" asp-route-id="@aluno.Id" class="btn btn-sm btn-outline-danger" title="Excluir"><i class="bi bi-trash"></i></a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center">
+                <span class="small text-muted">@Model.TotalItens aluno(s) · página @Model.PaginaAtual de @Model.TotalPaginas</span>
+                @if (Model.TotalPaginas > 1)
+                {
+                    <nav aria-label="Paginação">
+                        <ul class="pagination pagination-sm mb-0">
+                            <li class="page-item @(Model.TemAnterior ? "" : "disabled")">
+                                <a class="page-link" asp-action="Index" asp-route-busca="@busca" asp-route-pagina="@(Model.PaginaAtual - 1)">Anterior</a>
+                            </li>
+                            @for (var i = 1; i <= Model.TotalPaginas; i++)
+                            {
+                                <li class="page-item @(i == Model.PaginaAtual ? "active" : "")">
+                                    <a class="page-link" asp-action="Index" asp-route-busca="@busca" asp-route-pagina="@i">@i</a>
+                                </li>
+                            }
+                            <li class="page-item @(Model.TemProxima ? "" : "disabled")">
+                                <a class="page-link" asp-action="Index" asp-route-busca="@busca" asp-route-pagina="@(Model.PaginaAtual + 1)">Próxima</a>
+                            </li>
+                        </ul>
+                    </nav>
+                }
+            </div>
+        }
+    </div>
+</div>

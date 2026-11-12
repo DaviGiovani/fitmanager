@@ -1,0 +1,43 @@
+@model LoginViewModel
+@{
+    Layout = "_LayoutLogin";
+    ViewData["Title"] = "Entrar";
+}
+<div class="card login-card shadow-lg">
+    <div class="card-body p-4 p-md-5">
+        <div class="text-center mb-4">
+            <i class="bi bi-activity display-5" style="color: var(--fm-primaria)"></i>
+            <h1 class="h3 mt-2 mb-0">FitManager</h1>
+            <p class="text-muted mb-0">Gestão de academia</p>
+        </div>
+
+        <form asp-action="Login" asp-route-returnUrl="@ViewData["ReturnUrl"]" method="post">
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2"></div>
+
+            <div class="mb-3">
+                <label asp-for="Email" class="form-label"></label>
+                <input asp-for="Email" class="form-control" autocomplete="username" autofocus />
+                <span asp-validation-for="Email"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Senha" class="form-label"></label>
+                <input asp-for="Senha" class="form-control" autocomplete="current-password" />
+                <span asp-validation-for="Senha"></span>
+            </div>
+
+            <div class="form-check mb-3">
+                <input asp-for="LembrarMe" class="form-check-input" />
+                <label asp-for="LembrarMe" class="form-check-label"></label>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100">
+                <i class="bi bi-box-arrow-in-right"></i> Entrar
+            </button>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -1,0 +1,214 @@
+@model DashboardViewModel
+@{
+    ViewData["Title"] = "Início";
+    var hoje = DateTime.Today;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h3 mb-0">Painel</h1>
+        <span class="text-muted">@hoje.ToString("dddd, dd 'de' MMMM 'de' yyyy")</span>
+    </div>
+</div>
+
+@if (User.IsInRole(Perfis.Administrador))
+{
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-lg-3">
+            <div class="card card-indicador h-100">
+                <div class="card-body d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="text-muted small">Alunos ativos</div>
+                        <div class="valor">@Model.AlunosAtivos</div>
+                    </div>
+                    <div class="icone"><i class="bi bi-people"></i></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="card card-indicador h-100">
+                <div class="card-body d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="text-muted small">Matrículas ativas</div>
+                        <div class="valor">@Model.MatriculasAtivas</div>
+                    </div>
+                    <div class="icone"><i class="bi bi-card-checklist"></i></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="card card-indicador h-100">
+                <div class="card-body d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="text-muted small">Mensalidades em aberto</div>
+                        <div class="valor">@Model.MensalidadesEmAberto.Sum(m => m.Quantidade)</div>
+                    </div>
+                    <div class="icone"><i class="bi bi-exclamation-circle"></i></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="card card-indicador h-100">
+                <div class="card-body d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="text-muted small">Recebido em @hoje.ToString("MM/yyyy")</div>
+                        <div class="valor">@Model.ReceitaDoMes.ToString("C")</div>
+                    </div>
+                    <div class="icone"><i class="bi bi-cash-coin"></i></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="d-flex flex-wrap gap-2 mb-4">
+        <a asp-controller="Alunos" asp-action="Create" class="btn btn-primary"><i class="bi bi-person-plus"></i> Novo aluno</a>
+        <a asp-controller="Matriculas" asp-action="Create" class="btn btn-outline-primary"><i class="bi bi-card-checklist"></i> Nova matrícula</a>
+        <a asp-controller="Pagamentos" asp-action="Create" class="btn btn-outline-primary"><i class="bi bi-cash-coin"></i> Registrar pagamento</a>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-lg-7">
+            <div class="card h-100">
+                <div class="card-header bg-white fw-semibold">Mensalidades em aberto</div>
+                @if (Model.MensalidadesEmAberto.Count == 0)
+                {
+                    <div class="card-body text-muted">Nenhuma mensalidade em aberto.</div>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Aluno</th>
+                                    <th>Plano</th>
+                                    <th>Desde</th>
+                                    <th class="text-center">Qtd.</th>
+                                    <th class="text-end">Total</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model.MensalidadesEmAberto)
+                                {
+                                    <tr>
+                                        <td>@item.Aluno</td>
+                                        <td>@item.Plano</td>
+                                        <td>@item.MesMaisAntigo.ToString("MM/yyyy")</td>
+                                        <td class="text-center">@item.Quantidade</td>
+                                        <td class="text-end">@item.ValorTotal.ToString("C")</td>
+                                        <td class="text-end">
+                                            <a asp-controller="Pagamentos" asp-action="Create" asp-route-matriculaId="@item.MatriculaId"
+                                               class="btn btn-sm btn-outline-primary">Receber</a>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        </div>
+        <div class="col-lg-5">
+            <div class="card h-100">
+                <div class="card-header bg-white fw-semibold">Matrículas que vencem em até 30 dias</div>
+                @if (Model.MatriculasAVencer.Count == 0)
+                {
+                    <div class="card-body text-muted">Nenhuma matrícula próxima do vencimento.</div>
+                }
+                else
+                {
+                    <ul class="list-group list-group-flush">
+                        @foreach (var matricula in Model.MatriculasAVencer)
+                        {
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <a asp-controller="Matriculas" asp-action="Details" asp-route-id="@matricula.Id">@matricula.Aluno?.Nome</a>
+                                    <div class="small text-muted">@matricula.Plano?.Nome</div>
+                                </div>
+                                <span class="badge text-bg-warning">@matricula.DataFim.ToString("dd/MM/yyyy")</span>
+                            </li>
+                        }
+                    </ul>
+                }
+            </div>
+        </div>
+    </div>
+}
+
+@if (User.IsInRole(Perfis.Instrutor))
+{
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-lg-3">
+            <div class="card card-indicador h-100">
+                <div class="card-body d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="text-muted small">Fichas ativas</div>
+                        <div class="valor">@Model.FichasAtivas</div>
+                    </div>
+                    <div class="icone"><i class="bi bi-clipboard2-pulse"></i></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="card card-indicador h-100">
+                <div class="card-body d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="text-muted small">Alunos sem ficha</div>
+                        <div class="valor">@Model.AlunosSemFicha.Count</div>
+                    </div>
+                    <div class="icone"><i class="bi bi-person-exclamation"></i></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-lg-6">
+            <div class="card h-100">
+                <div class="card-header bg-white fw-semibold">Alunos com matrícula ativa e sem ficha de treino</div>
+                @if (Model.AlunosSemFicha.Count == 0)
+                {
+                    <div class="card-body text-muted">Todos os alunos matriculados têm ficha ativa.</div>
+                }
+                else
+                {
+                    <ul class="list-group list-group-flush">
+                        @foreach (var aluno in Model.AlunosSemFicha)
+                        {
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span>@aluno.Nome</span>
+                                <a asp-controller="Treinos" asp-action="Create" asp-route-alunoId="@aluno.Id"
+                                   class="btn btn-sm btn-outline-primary">Montar ficha</a>
+                            </li>
+                        }
+                    </ul>
+                }
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="card h-100">
+                <div class="card-header bg-white fw-semibold">Últimas fichas criadas</div>
+                @if (Model.UltimasFichas.Count == 0)
+                {
+                    <div class="card-body text-muted">Nenhuma ficha de treino cadastrada.</div>
+                }
+                else
+                {
+                    <ul class="list-group list-group-flush">
+                        @foreach (var treino in Model.UltimasFichas)
+                        {
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <a asp-controller="Treinos" asp-action="Details" asp-route-id="@treino.Id">@treino.Nome</a>
+                                    <div class="small text-muted">@treino.Aluno?.Nome · @treino.Instrutor?.Nome</div>
+                                </div>
+                                <span class="small text-muted">@treino.DataCriacao.ToString("dd/MM/yyyy")</span>
+                            </li>
+                        }
+                    </ul>
+                }
+            </div>
+        </div>
+    </div>
+}

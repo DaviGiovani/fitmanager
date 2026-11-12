@@ -1,0 +1,77 @@
+@model List<Instrutor>
+@{
+    ViewData["Title"] = "Instrutores";
+    var fichasAtivas = (Dictionary<int, int>)ViewBag.FichasAtivas;
+    var emailsComAcesso = (HashSet<string>)ViewBag.EmailsComAcesso;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h3 mb-0">Instrutores</h1>
+    <a asp-action="Create" class="btn btn-primary"><i class="bi bi-person-plus"></i> Novo instrutor</a>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        @if (Model.Count == 0)
+        {
+            <p class="text-muted mb-0">Nenhum instrutor cadastrado.</p>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Nome</th>
+                            <th>CREF</th>
+                            <th>E-mail (login)</th>
+                            <th>Telefone</th>
+                            <th class="text-center">Fichas ativas</th>
+                            <th>Acesso</th>
+                            <th>Situação</th>
+                            <th class="text-end">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var instrutor in Model)
+                        {
+                            var fichas = fichasAtivas.TryGetValue(instrutor.Id, out var total) ? total : 0;
+                            var possuiAcesso = instrutor.Email is not null && emailsComAcesso.Contains(instrutor.Email);
+                            <tr>
+                                <td class="fw-semibold">@instrutor.Nome</td>
+                                <td>@instrutor.Cref</td>
+                                <td>@instrutor.Email</td>
+                                <td>@instrutor.Telefone</td>
+                                <td class="text-center">@fichas</td>
+                                <td>
+                                    @if (possuiAcesso)
+                                    {
+                                        <span class="badge text-bg-primary">Com login</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge text-bg-light border">Sem login</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (instrutor.Ativo)
+                                    {
+                                        <span class="badge text-bg-success">Ativo</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge text-bg-secondary">Inativo</span>
+                                    }
+                                </td>
+                                <td class="text-end text-nowrap">
+                                    <a asp-action="Edit" asp-route-id="@instrutor.Id" class="btn btn-sm btn-outline-primary" title="Editar"><i class="bi bi-pencil"></i></a>
+                                    <a asp-action="Delete" asp-route-id="@instrutor.Id" class="btn btn-sm btn-outline-danger" title="Excluir"><i class="bi bi-trash"></i></a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>

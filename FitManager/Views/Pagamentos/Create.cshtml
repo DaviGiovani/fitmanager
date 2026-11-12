@@ -1,0 +1,126 @@
+@model PagamentoCreateViewModel
+@{
+    ViewData["Title"] = "Registrar pagamento";
+    var matricula = (Matricula)ViewBag.Matricula;
+    var hoje = DateTime.Today;
+    var mesAtual = new DateTime(hoje.Year, hoje.Month, 1);
+    var pendentes = matricula.MesesPendentes().ToList();
+    var pagos = matricula.Pagamentos.OrderByDescending(p => p.MesReferencia).ToList();
+    var formas = FormasPagamento.Permitidas(matricula.Plano).ToList();
+}
+
+<h1 class="h3 mb-3">Registrar pagamento</h1>
+
+<div class="row g-3">
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-body">
+                <dl class="row dl-dados">
+                    <dt class="col-4">Aluno</dt>
+                    <dd class="col-8">@matricula.Aluno?.Nome</dd>
+                    <dt class="col-4">Plano</dt>
+                    <dd class="col-8">@matricula.Plano?.Nome</dd>
+                    <dt class="col-4">Período</dt>
+                    <dd class="col-8">@matricula.DataInicio.ToString("dd/MM/yyyy") a @matricula.DataFim.ToString("dd/MM/yyyy")</dd>
+                </dl>
+
+                <form asp-action="Create" method="post">
+                    <input type="hidden" asp-for="MatriculaId" />
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2"></div>
+
+                    <div class="mb-3">
+                        <label for="MesReferencia" class="form-label">Mês de referência</label>
+                        <select name="MesReferencia" id="MesReferencia" class="form-select">
+                            @foreach (var mes in pendentes)
+                            {
+                                var selecionado = Model.MesReferencia.HasValue
+                                    && Model.MesReferencia.Value.Year == mes.Year
+                                    && Model.MesReferencia.Value.Month == mes.Month;
+                                <option value="@mes.ToString("yyyy-MM-dd")" selected="@selecionado">@mes.ToString("MM/yyyy")@(mes <= mesAtual ? " (em aberto)" : "")</option>
+                            }
+                        </select>
+                        <span asp-validation-for="MesReferencia"></span>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-sm-6">
+                            <label asp-for="Valor" class="form-label"></label>
+                            <div class="input-group">
+                                <span class="input-group-text">R$</span>
+                                <input asp-for="Valor" class="form-control" type="text" inputmode="decimal" />
+                            </div>
+                            <span asp-validation-for="Valor"></span>
+                        </div>
+                        <div class="col-sm-6">
+                            <label asp-for="DataPagamento" class="form-label"></label>
+                            <input asp-for="DataPagamento" class="form-control" />
+                            <span asp-validation-for="DataPagamento"></span>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="FormaPagamento" class="form-label">Forma de pagamento</label>
+                        <select name="FormaPagamento" id="FormaPagamento" class="form-select"
+                                data-val="true" data-val-required="Selecione a forma de pagamento.">
+                            <option value="">Selecione...</option>
+                            @foreach (var forma in formas)
+                            {
+                                <option value="@forma" selected="@(Model.FormaPagamento == forma)">@forma.Descricao()</option>
+                            }
+                        </select>
+                        @if (matricula.Plano?.AceitaGymPass == true)
+                        {
+                            <div class="form-text">O plano desta matrícula aceita GymPass.</div>
+                        }
+                        <span asp-validation-for="FormaPagamento"></span>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> Registrar pagamento</button>
+                        <a asp-controller="Matriculas" asp-action="Details" asp-route-id="@matricula.Id" class="btn btn-outline-secondary">Cancelar</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-header bg-white fw-semibold">Histórico de pagamentos</div>
+            @if (pagos.Count == 0)
+            {
+                <div class="card-body text-muted">Nenhum pagamento registrado para esta matrícula.</div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table mb-0">
+                        <thead>
+                            <tr>
+                                <th>Mês</th>
+                                <th>Pago em</th>
+                                <th>Forma</th>
+                                <th class="text-end">Valor</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var pagamento in pagos)
+                            {
+                                <tr>
+                                    <td>@pagamento.MesReferencia.ToString("MM/yyyy")</td>
+                                    <td>@pagamento.DataPagamento.ToString("dd/MM/yyyy")</td>
+                                    <td>@pagamento.FormaPagamento.Descricao()</td>
+                                    <td class="text-end">@pagamento.Valor.ToString("C")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

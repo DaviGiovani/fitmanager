@@ -1,0 +1,146 @@
+@model TreinoFormViewModel
+@{
+    var edicao = ViewData["Edicao"] is true;
+    var alunos = (List<Aluno>)ViewBag.Alunos;
+    var instrutores = (List<Instrutor>)ViewBag.Instrutores;
+    var exercicios = (List<Exercicio>)ViewBag.Exercicios;
+    var grupos = exercicios.GroupBy(e => e.GrupoMuscular).ToList();
+    var instrutorDaFicha = instrutores.FirstOrDefault(i => i.Id == Model.InstrutorId);
+    var nomeInstrutor = instrutorDaFicha is null ? string.Empty : instrutorDaFicha.Nome + " – CREF " + instrutorDaFicha.Cref;
+}
+
+<div asp-validation-summary="All" class="alert alert-danger py-2"></div>
+
+<div class="card mb-3">
+    <div class="card-header bg-white fw-semibold">Dados da ficha</div>
+    <div class="card-body">
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label asp-for="AlunoId" class="form-label"></label>
+                @if (edicao)
+                {
+                    <select asp-for="AlunoId" class="form-select" disabled>
+                        @foreach (var aluno in alunos)
+                        {
+                            <option value="@aluno.Id">@aluno.Nome</option>
+                        }
+                    </select>
+                    <div class="form-text">O aluno não pode ser alterado depois que a ficha é criada.</div>
+                }
+                else
+                {
+                    <select asp-for="AlunoId" class="form-select">
+                        <option value="">Selecione o aluno...</option>
+                        @foreach (var aluno in alunos)
+                        {
+                            <option value="@aluno.Id">@aluno.Nome</option>
+                        }
+                    </select>
+                    <div class="form-text">São listados apenas os alunos com matrícula ativa.</div>
+                }
+            </div>
+            <div class="col-md-6">
+                <label for="InstrutorNome" class="form-label">Instrutor</label>
+                <input id="InstrutorNome" class="form-control" value="@nomeInstrutor" disabled />
+                <div class="form-text">A ficha fica registrada no nome do instrutor que a elaborou.</div>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="Nome" class="form-label"></label>
+                <input asp-for="Nome" class="form-control" maxlength="60" placeholder="Ex.: Treino A – Peito e tríceps" />
+            </div>
+            <div class="col-md-6">
+                <label asp-for="Objetivo" class="form-label"></label>
+                <input asp-for="Objetivo" class="form-control" maxlength="255" placeholder="Ex.: Hipertrofia, emagrecimento, condicionamento" />
+            </div>
+            <div class="col-12">
+                <div class="form-check form-switch">
+                    <input asp-for="Ativo" class="form-check-input" />
+                    <label asp-for="Ativo" class="form-check-label"></label>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <span class="fw-semibold">Exercícios da ficha</span>
+        <button type="button" class="btn btn-sm btn-outline-primary" id="adicionarItem"><i class="bi bi-plus-lg"></i> Adicionar exercício</button>
+    </div>
+    <div class="table-responsive">
+        <table class="table mb-0">
+            <thead>
+                <tr>
+                    <th class="text-center" style="width: 3rem">#</th>
+                    <th style="min-width: 16rem">Exercício</th>
+                    <th style="width: 7rem">Séries</th>
+                    <th style="width: 9rem">Repetições</th>
+                    <th style="width: 8rem">Carga (kg)</th>
+                    <th style="width: 8rem">Descanso (s)</th>
+                    <th style="width: 3rem"></th>
+                </tr>
+            </thead>
+            <tbody id="itensTreino">
+                @for (var i = 0; i < Model.Itens.Count; i++)
+                {
+                    var item = Model.Itens[i];
+                    <tr class="item-treino">
+                        <td class="text-center ordem">@(i + 1)</td>
+                        <td>
+                            <select name="Itens[@(i)].ExercicioId" class="form-select" required>
+                                <option value="">Selecione...</option>
+                                @foreach (var grupo in grupos)
+                                {
+                                    <optgroup label="@grupo.Key">
+                                        @foreach (var exercicio in grupo)
+                                        {
+                                            <option value="@exercicio.Id" selected="@(exercicio.Id == item.ExercicioId)">@exercicio.Nome</option>
+                                        }
+                                    </optgroup>
+                                }
+                            </select>
+                        </td>
+                        <td><input type="number" name="Itens[@(i)].Series" value="@item.Series" class="form-control" min="1" max="20" required /></td>
+                        <td><input type="text" name="Itens[@(i)].Repeticoes" value="@item.Repeticoes" class="form-control" maxlength="20" placeholder="12 ou 8-12" required /></td>
+                        <td><input type="text" name="Itens[@(i)].CargaKg" value="@(item.CargaKg?.ToString("0.##"))" class="form-control" inputmode="decimal" placeholder="Opcional" /></td>
+                        <td><input type="number" name="Itens[@(i)].DescansoSegundos" value="@item.DescansoSegundos" class="form-control" min="0" max="600" required /></td>
+                        <td class="text-end">
+                            <button type="button" class="btn btn-sm btn-outline-danger remover-item" title="Remover exercício"><i class="bi bi-x-lg"></i></button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <div class="card-footer bg-white small text-muted" id="semItens">
+        A ficha deve conter ao menos um exercício.
+    </div>
+</div>
+
+@* Linha modelo usada pelo JavaScript ao adicionar um exercício. *@
+<template id="modeloItem">
+    <tr class="item-treino">
+        <td class="text-center ordem"></td>
+        <td>
+            <select name="Itens[0].ExercicioId" class="form-select" required>
+                <option value="">Selecione...</option>
+                @foreach (var grupo in grupos)
+                {
+                    <optgroup label="@grupo.Key">
+                        @foreach (var exercicio in grupo)
+                        {
+                            <option value="@exercicio.Id">@exercicio.Nome</option>
+                        }
+                    </optgroup>
+                }
+            </select>
+        </td>
+        <td><input type="number" name="Itens[0].Series" value="3" class="form-control" min="1" max="20" required /></td>
+        <td><input type="text" name="Itens[0].Repeticoes" value="12" class="form-control" maxlength="20" placeholder="12 ou 8-12" required /></td>
+        <td><input type="text" name="Itens[0].CargaKg" value="" class="form-control" inputmode="decimal" placeholder="Opcional" /></td>
+        <td><input type="number" name="Itens[0].DescansoSegundos" value="60" class="form-control" min="0" max="600" required /></td>
+        <td class="text-end">
+            <button type="button" class="btn btn-sm btn-outline-danger remover-item" title="Remover exercício"><i class="bi bi-x-lg"></i></button>
+        </td>
+    </tr>
+</template>

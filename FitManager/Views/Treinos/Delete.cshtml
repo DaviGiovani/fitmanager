@@ -1,0 +1,30 @@
+@model Treino
+@{
+    ViewData["Title"] = "Excluir ficha de treino";
+}
+
+<h1 class="h3 mb-3">Excluir ficha de treino</h1>
+
+<div class="card">
+    <div class="card-body">
+        <div class="alert alert-danger">
+            <i class="bi bi-exclamation-triangle"></i>
+            Tem certeza de que deseja excluir a ficha <strong>@Model.Nome</strong> e seus @Model.Itens.Count exercício(s)?
+            Esta ação não pode ser desfeita.
+        </div>
+
+        <dl class="row dl-dados">
+            <dt class="col-sm-3">Aluno</dt>
+            <dd class="col-sm-9">@Model.Aluno?.Nome</dd>
+            <dt class="col-sm-3">Instrutor</dt>
+            <dd class="col-sm-9">@Model.Instrutor?.Nome</dd>
+            <dt class="col-sm-3">Criada em</dt>
+            <dd class="col-sm-9">@Model.DataCriacao.ToString("dd/MM/yyyy")</dd>
+        </dl>
+
+        <form asp-action="Delete" asp-route-id="@Model.Id" method="post" class="d-flex gap-2">
+            <button type="submit" class="btn btn-danger"><i class="bi bi-trash"></i> Sim, excluir</button>
+            <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-outline-secondary">Voltar</a>
+        </form>
+    </div>
+</div>

@@ -1,0 +1,58 @@
+@model Instrutor
+@{
+    ViewData["Title"] = "Excluir instrutor";
+    var quantidadeFichas = (int)ViewBag.QuantidadeFichas;
+    var possuiAcesso = (bool)ViewBag.PossuiAcesso;
+}
+
+<h1 class="h3 mb-3">Excluir instrutor</h1>
+
+<div class="card">
+    <div class="card-body">
+        @if (quantidadeFichas > 0)
+        {
+            <div class="alert alert-warning">
+                <i class="bi bi-exclamation-triangle"></i>
+                <strong>@Model.Nome</strong> elaborou @quantidadeFichas ficha(s) de treino. Para preservar o histórico,
+                ele não será apagado: será <strong>inativado</strong>
+                @if (possuiAcesso)
+                {
+                    <span>e o acesso dele ao sistema será bloqueado</span>
+                }.
+            </div>
+        }
+        else
+        {
+            <div class="alert alert-danger">
+                <i class="bi bi-exclamation-triangle"></i>
+                Tem certeza de que deseja excluir <strong>@Model.Nome</strong>?
+                @if (possuiAcesso)
+                {
+                    <span>O login dele também será excluído.</span>
+                }
+                Esta ação não pode ser desfeita.
+            </div>
+        }
+
+        <dl class="row dl-dados">
+            <dt class="col-sm-3">Nome</dt>
+            <dd class="col-sm-9">@Model.Nome</dd>
+            <dt class="col-sm-3">CREF</dt>
+            <dd class="col-sm-9">@Model.Cref</dd>
+            <dt class="col-sm-3">E-mail (login)</dt>
+            <dd class="col-sm-9">@Model.Email</dd>
+        </dl>
+
+        <form asp-action="Delete" asp-route-id="@Model.Id" method="post" class="d-flex gap-2">
+            @if (quantidadeFichas > 0)
+            {
+                <button type="submit" class="btn btn-warning"><i class="bi bi-slash-circle"></i> Inativar instrutor</button>
+            }
+            else
+            {
+                <button type="submit" class="btn btn-danger"><i class="bi bi-trash"></i> Sim, excluir</button>
+            }
+            <a asp-action="Index" class="btn btn-outline-secondary">Voltar</a>
+        </form>
+    </div>
+</div>
